@@ -14,12 +14,12 @@ A REST API built with Gin and Supabase for fitness tracking, allowing users to m
 ---
 
 ## Epic 1: Project Setup & Configuration
-- [ ] Initialize Go module and project structure
-- [ ] Install dependencies (Gin, Supabase client, golang-migrate)
-- [ ] Set up Supabase project and get credentials
-- [ ] Create .env configuration file
-- [ ] Set up database connection
-- [ ] Configure Supabase Storage buckets for images
+- [x] Initialize Go module and project structure
+- [x] Install dependencies (Gin, Supabase client, golang-migrate)
+- [x] Set up Supabase project and get credentials
+- [x] Create .env configuration file
+- [x] Set up database connection
+- [x] Configure Supabase Storage buckets for images
 
 ## Epic 2: Database Schema & Migrations
 - [ ] Design database schema (users, exercises, workouts, equipment, relationships)
