@@ -19,41 +19,44 @@ This directory contains the Postman collection for testing the FitAPI endpoints 
 
 ### 🔐 Smart Token Caching
 
-The collection includes a **pre-request script** with intelligent token management:
+The collection uses shell scripts for intelligent token management:
 
+- **`generate-token.sh`**: Generates and caches authentication tokens
+- **`run-tests.sh`**: Wrapper to run Newman with auto-token generation
 - **Caches tokens** to `.token_cache.json` with expiration timestamps
 - **Reuses valid tokens** - only generates new ones when expired or expiring soon (within 5 minutes)
-- **Automatically refreshes** when needed
 
-Supabase tokens expire after **1 hour** by default. The script:
-1. Checks if cached token exists and is still valid
-2. Only runs `go run cmd/gettoken/main.go` when necessary
+Supabase tokens expire after **1 hour** by default. The scripts:
+1. Check if cached token exists and is still valid
+2. Only run `go run cmd/gettoken/main.go --json` when necessary
 3. This makes your tests much faster! 🚀
 
-No manual token management needed - just run your tests!
+No manual token management needed - just run `./collection/run-tests.sh`!
 
 ## Running Tests
 
-### Run the entire collection:
+### Quick Start (Recommended):
 ```bash
-newman run collection/fitapi.postman_collection.json
+./collection/run-tests.sh
 ```
+
+This automatically generates and caches authentication tokens!
 
 ### Run with detailed output:
 ```bash
-newman run collection/fitapi.postman_collection.json --verbose
+./collection/run-tests.sh --verbose
 ```
 
-### Run a specific request:
-```bash
-newman run collection/fitapi.postman_collection.json --folder "Get Current User"
-```
-
-### Run with custom environment:
-You can override variables like base_url:
+### Manual Method:
+If you prefer to run Newman directly:
 ```bash
 newman run collection/fitapi.postman_collection.json \
-  --env-var "base_url=http://localhost:3000"
+  --env-var "auth_token=$(./collection/generate-token.sh)"
+```
+
+### Run with custom base URL:
+```bash
+./collection/run-tests.sh --env-var "base_url=http://localhost:3000"
 ```
 
 ## Collection Structure
@@ -69,24 +72,31 @@ newman run collection/fitapi.postman_collection.json \
 
 ## How Smart Authentication Works
 
-1. **Before each request**, the pre-request script runs
-2. **Checks cache**: Looks for `.token_cache.json` with a valid token
-3. **If token is valid** (more than 5 minutes until expiration):
-   - Uses cached token (instant! ⚡)
-   - Logs: `✅ Using cached token (expires in X minutes)`
-4. **If token expired or missing**:
-   - Runs `go run cmd/gettoken/main.go` to generate fresh token
-   - Saves to cache with expiration timestamp
-   - Logs: `✅ New auth token generated and cached`
-5. **Sets variable**: Stores in `auth_token` collection variable
-6. **Protected endpoints** automatically use this token in `Authorization: Bearer` header
+### Token Generation Flow:
+
+1. **Run tests** with `./collection/run-tests.sh`
+2. **Script calls** `generate-token.sh` which:
+   - Checks `.token_cache.json` for a valid token
+   - **If token is valid** (more than 5 minutes until expiration):
+     - Uses cached token (instant! ⚡)
+     - Logs: `✅ Using cached token (expires in X minutes)`
+   - **If token expired or missing**:
+     - Runs `go run cmd/gettoken/main.go --json` to generate fresh token
+     - Saves to cache with expiration timestamp
+     - Logs: `✅ New token generated and cached (expires in 3600s)`
+3. **Token is passed** to Newman via `--env-var "auth_token=..."`
+4. **Protected endpoints** automatically use this token in `Authorization: Bearer` header
+
+### Cache File Structure
 
 The cache file (`.token_cache.json`) is gitignored and contains:
 ```json
 {
   "access_token": "eyJ...",
   "expires_in": 3600,
-  "expires_at": 1234567890
+  "expires_at": 1759640378,
+  "user_id": "6b37ab1f-b190-4072-9e50-5318d4bad35d",
+  "email": "test@example.com"
 }
 ```
 
