@@ -1,0 +1,94 @@
+{
+	"info": {
+		"_postman_id": "fitapi-collection",
+		"name": "FitAPI",
+		"description": "Fitness API with Supabase Authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-generate auth token before each request",
+					"const { execSync } = require('child_process');",
+					"",
+					"try {",
+					"    // Run the gettoken command and capture output",
+					"    const output = execSync('cd /home/juanqui/Development/personal/go/fitapi && go run cmd/gettoken/main.go', {",
+					"        encoding: 'utf-8',",
+					"        stdio: ['pipe', 'pipe', 'pipe']",
+					"    });",
+					"    ",
+					"    // Parse the JSON response",
+					"    const response = JSON.parse(output);",
+					"    ",
+					"    // Set the token as a collection variable",
+					"    pm.collectionVariables.set('auth_token', response.access_token);",
+					"    ",
+					"    console.log('✅ Auth token auto-generated successfully');",
+					"} catch (error) {",
+					"    console.error('❌ Failed to generate auth token:', error.message);",
+					"    console.error('Make sure the API server can connect to Supabase');",
+					"}"
+				]
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": ["{{base_url}}"],
+					"path": ["health"]
+				},
+				"description": "Public endpoint to check API and database connectivity"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Current User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/me",
+					"host": ["{{base_url}}"],
+					"path": ["api", "me"]
+				},
+				"description": "Protected endpoint that returns the authenticated user's information"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
