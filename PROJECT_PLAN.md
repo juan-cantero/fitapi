@@ -22,11 +22,11 @@ A REST API built with Gin and Supabase for fitness tracking, allowing users to m
 - [x] Configure Supabase Storage buckets for images
 
 ## Epic 2: Database Schema & Migrations
-- [ ] Design database schema (users, exercises, workouts, equipment, relationships)
-- [ ] Create migration files for all tables
-- [ ] Set up many-to-many relationship tables (workout_exercises, exercise_equipment)
-- [ ] Add indexes for performance (user_id, public flag, etc.)
-- [ ] Run initial migrations
+- [x] Design database schema (users, exercises, workouts, equipment, relationships)
+- [x] Create migration files for all tables
+- [x] Set up many-to-many relationship tables (workout_exercises, exercise_equipment)
+- [x] Add indexes for performance (user_id, public flag, etc.)
+- [x] Run initial migrations
 
 ## Epic 3: Authentication & User Management
 - [ ] Implement Supabase auth middleware
