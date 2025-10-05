@@ -48,3 +48,6 @@ temp/
 
 # Learning notes
 LEARNING.md
+
+# Token cache
+.token_cache.json

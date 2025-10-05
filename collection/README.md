@@ -17,14 +17,20 @@ This directory contains the Postman collection for testing the FitAPI endpoints 
 
 ## Features
 
-### 🔐 Automatic Token Generation
+### 🔐 Smart Token Caching
 
-The collection includes a **pre-request script** that automatically generates a fresh authentication token before each request by running:
-```bash
-go run cmd/gettoken/main.go
-```
+The collection includes a **pre-request script** with intelligent token management:
 
-This means you don't need to manually copy/paste tokens - Newman will handle authentication automatically!
+- **Caches tokens** to `.token_cache.json` with expiration timestamps
+- **Reuses valid tokens** - only generates new ones when expired or expiring soon (within 5 minutes)
+- **Automatically refreshes** when needed
+
+Supabase tokens expire after **1 hour** by default. The script:
+1. Checks if cached token exists and is still valid
+2. Only runs `go run cmd/gettoken/main.go` when necessary
+3. This makes your tests much faster! 🚀
+
+No manual token management needed - just run your tests!
 
 ## Running Tests
 
@@ -61,13 +67,28 @@ newman run collection/fitapi.postman_collection.json \
   - Returns authenticated user's ID and email
   - Uses auto-generated Bearer token
 
-## How Auto-Authentication Works
+## How Smart Authentication Works
 
-1. Before each request, the collection runs a pre-request script
-2. The script executes `go run cmd/gettoken/main.go`
-3. This creates a test user in Supabase and returns an access token
-4. The token is stored in the `auth_token` collection variable
-5. Protected endpoints automatically use this token in the `Authorization: Bearer` header
+1. **Before each request**, the pre-request script runs
+2. **Checks cache**: Looks for `.token_cache.json` with a valid token
+3. **If token is valid** (more than 5 minutes until expiration):
+   - Uses cached token (instant! ⚡)
+   - Logs: `✅ Using cached token (expires in X minutes)`
+4. **If token expired or missing**:
+   - Runs `go run cmd/gettoken/main.go` to generate fresh token
+   - Saves to cache with expiration timestamp
+   - Logs: `✅ New auth token generated and cached`
+5. **Sets variable**: Stores in `auth_token` collection variable
+6. **Protected endpoints** automatically use this token in `Authorization: Bearer` header
+
+The cache file (`.token_cache.json`) is gitignored and contains:
+```json
+{
+  "access_token": "eyJ...",
+  "expires_in": 3600,
+  "expires_at": 1234567890
+}
+```
 
 ## Troubleshooting
 
