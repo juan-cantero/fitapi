@@ -5,7 +5,10 @@ import (
 
 	"github.com/juan-cantero/fitapi/config"
 	"github.com/juan-cantero/fitapi/internal/database"
+	"github.com/juan-cantero/fitapi/internal/handlers"
 	"github.com/juan-cantero/fitapi/internal/middleware"
+	"github.com/juan-cantero/fitapi/internal/repositories"
+	"github.com/juan-cantero/fitapi/internal/services"
 
 	"github.com/gin-gonic/gin"
 	supa "github.com/supabase-community/supabase-go"
@@ -30,6 +33,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize Supabase client: %v", err)
 	}
+
+	// Initialize repositories
+	equipmentRepo := repositories.NewPostgresEquipmentRepository(db.Pool)
+
+	// Initialize services
+	equipmentService := services.NewEquipmentService(equipmentRepo)
+
+	// Initialize handlers
+	equipmentHandler := handlers.NewEquipmentHandler(equipmentService)
 
 	// Initialize Gin router
 	router := gin.Default()
@@ -59,10 +71,12 @@ func main() {
 			})
 		})
 
-		// Future endpoints will go here:
-		// api.POST("/exercises", createExercise)
-		// api.GET("/exercises", listExercises)
-		// etc.
+		// Equipment endpoints
+		api.POST("/equipment", equipmentHandler.Create)
+		api.GET("/equipment", equipmentHandler.List)
+		api.GET("/equipment/:id", equipmentHandler.GetByID)
+		api.PUT("/equipment/:id", equipmentHandler.Update)
+		api.DELETE("/equipment/:id", equipmentHandler.Delete)
 	}
 
 	// Start server

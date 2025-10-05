@@ -55,7 +55,7 @@ A REST API built with Gin and Supabase for fitness tracking, allowing users to m
 - [ ] DELETE /api/equipment/:id - Delete equipment
 
 **Testing:**
-- [ ] Create mock repository for unit tests
+- [ ] Create mock repository for unit tests 
 - [ ] Write unit tests for service layer (business logic)
 - [ ] Write unit tests for handlers (HTTP layer)
 - [ ] Add equipment endpoints to Postman collection

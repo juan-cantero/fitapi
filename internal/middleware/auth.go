@@ -13,13 +13,24 @@ import (
 // It extracts the token from the Authorization header and validates it
 // If valid, it stores the user_id in the Gin context for handlers to use
 func AuthRequired() gin.HandlerFunc {
+	// Check if auth should be skipped (development mode)
+	skipAuth := os.Getenv("SKIP_AUTH") == "true"
+
 	// Get JWT secret from environment
 	jwtSecret := os.Getenv("SUPABASE_JWT_SECRET")
-	if jwtSecret == "" {
+	if jwtSecret == "" && !skipAuth {
 		panic("SUPABASE_JWT_SECRET environment variable is required")
 	}
 
 	return func(c *gin.Context) {
+		// Development mode: bypass auth and inject test user
+		// This user was created by running: go run cmd/gettoken/main.go
+		if skipAuth {
+			c.Set("user_id", "6b37ab1f-b190-4072-9e50-5318d4bad35d") // test@example.com
+			c.Set("user_email", "test@example.com")
+			c.Next()
+			return
+		}
 		// 1. Extract Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -42,7 +53,7 @@ func AuthRequired() gin.HandlerFunc {
 		}
 
 		// 3. Parse and validate JWT token
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 			// Validate signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
