@@ -5,6 +5,7 @@ import (
 
 	"github.com/juan-cantero/fitapi/config"
 	"github.com/juan-cantero/fitapi/internal/database"
+	"github.com/juan-cantero/fitapi/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	supa "github.com/supabase-community/supabase-go"
@@ -33,7 +34,7 @@ func main() {
 	// Initialize Gin router
 	router := gin.Default()
 
-	// Health check endpoint
+	// Public routes (no authentication required)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":   "ok",
@@ -41,6 +42,28 @@ func main() {
 			"supabase": supabaseClient != nil,
 		})
 	})
+
+	// Protected routes (authentication required)
+	api := router.Group("/api")
+	api.Use(middleware.AuthRequired())
+	{
+		// Test endpoint to verify auth is working
+		api.GET("/me", func(c *gin.Context) {
+			userID, _ := c.Get("user_id")
+			userEmail, _ := c.Get("user_email")
+
+			c.JSON(200, gin.H{
+				"user_id": userID,
+				"email":   userEmail,
+				"message": "Authentication successful!",
+			})
+		})
+
+		// Future endpoints will go here:
+		// api.POST("/exercises", createExercise)
+		// api.GET("/exercises", listExercises)
+		// etc.
+	}
 
 	// Start server
 	log.Printf("Server starting on port %s", cfg.Port)
