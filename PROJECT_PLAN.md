@@ -5,11 +5,13 @@ A REST API built with Gin and Supabase for fitness tracking, allowing users to m
 
 ## Tech Stack
 - **Backend**: Go with Gin framework
-- **Database**: Supabase (PostgreSQL)
-- **Auth**: Supabase built-in authentication
+- **Database**: Supabase (PostgreSQL) with pgx driver
+- **Auth**: Supabase Auth with JWT validation
 - **Storage**: Supabase Storage for images
 - **Migration**: golang-migrate with SQL files
-- **Supabase Client**: supabase-go
+- **Architecture**: Clean Architecture (Handlers → Services → Repositories)
+- **Testing**: Go native testing with mock repositories, Newman for API tests
+- **API Testing**: Postman collections with Newman CLI
 
 ---
 
@@ -28,63 +30,181 @@ A REST API built with Gin and Supabase for fitness tracking, allowing users to m
 - [x] Add indexes for performance (user_id, public flag, etc.)
 - [x] Run initial migrations
 
-## Epic 3: Authentication & User Management
-- [ ] Implement Supabase auth middleware
-- [ ] Create user registration endpoint
-- [ ] Create user login endpoint
-- [ ] Implement JWT token validation
-- [ ] Create user context extraction from token
-- [ ] Add protected route middleware
+## Epic 3: Authentication & User Management ✅
+- [x] Implement JWT token validation middleware
+- [x] Create user context extraction from token
+- [x] Add protected route middleware to /api
+- [x] Create test endpoint /api/me
+- [x] Add SKIP_AUTH environment variable for development
+- [x] Create Postman collection with Newman support
+- [x] Implement smart token caching for tests
 
-## Epic 4: Equipment Management
-- [ ] Create equipment model/struct
-- [ ] Implement POST /api/equipment (create equipment)
-- [ ] Implement GET /api/equipment (list all equipment)
-- [ ] Implement GET /api/equipment/:id (get single equipment)
-- [ ] Implement PUT /api/equipment/:id (update equipment)
-- [ ] Implement DELETE /api/equipment/:id (delete equipment)
+## Epic 4: Equipment Management (Clean Architecture)
+**Architecture Setup:**
+- [ ] Create models/equipment.go (domain model)
+- [ ] Create repositories/equipment.go (interface + PostgreSQL implementation)
+- [ ] Create services/equipment.go (business logic layer)
+- [ ] Create handlers/equipment.go (HTTP/Gin handlers)
+- [ ] Add dependency injection in main.go
 
-## Epic 5: Exercise Management
-- [ ] Create exercise model/struct with public/private flag
-- [ ] Implement POST /api/exercises (create exercise)
-- [ ] Implement GET /api/exercises (list exercises - public + user's private)
-- [ ] Implement GET /api/exercises/:id (get single exercise)
-- [ ] Implement PUT /api/exercises/:id (update exercise - only if owner)
-- [ ] Implement DELETE /api/exercises/:id (delete exercise - only if owner)
-- [ ] Implement GET /api/exercises?equipment_id=X (filter by equipment)
-- [ ] Add exercise-equipment relationship endpoints
+**CRUD Endpoints:**
+- [ ] POST /api/equipment - Create equipment
+- [ ] GET /api/equipment - List all equipment
+- [ ] GET /api/equipment/:id - Get single equipment
+- [ ] PUT /api/equipment/:id - Update equipment
+- [ ] DELETE /api/equipment/:id - Delete equipment
 
-## Epic 6: Workout Management
-- [ ] Create workout model/struct
-- [ ] Implement POST /api/workouts (create workout with exercises)
-- [ ] Implement GET /api/workouts (list user's workouts)
-- [ ] Implement GET /api/workouts/:id (get workout with exercises)
-- [ ] Implement PUT /api/workouts/:id (update workout)
-- [ ] Implement DELETE /api/workouts/:id (delete workout)
-- [ ] Add/remove exercises to/from workout
+**Testing:**
+- [ ] Create mock repository for unit tests
+- [ ] Write unit tests for service layer (business logic)
+- [ ] Write unit tests for handlers (HTTP layer)
+- [ ] Add equipment endpoints to Postman collection
+- [ ] Test with Newman
 
-## Epic 7: Image Upload & Storage
+**Validation & Error Handling:**
+- [ ] Add input validation (required fields, max lengths)
+- [ ] Implement proper error responses (400, 404, 500)
+- [ ] Add ownership validation (user can only modify their equipment)
+
+## Epic 5: Exercise Management (Clean Architecture)
+**Architecture Setup:**
+- [ ] Create models/exercise.go with public/private flag
+- [ ] Create repositories/exercise.go (interface + implementation)
+- [ ] Create services/exercise.go (with visibility logic)
+- [ ] Create handlers/exercise.go
+- [ ] Add dependency injection in main.go
+
+**CRUD Endpoints:**
+- [ ] POST /api/exercises - Create exercise
+- [ ] GET /api/exercises - List exercises (public + user's private)
+- [ ] GET /api/exercises/:id - Get single exercise
+- [ ] PUT /api/exercises/:id - Update exercise (ownership check)
+- [ ] DELETE /api/exercises/:id - Delete exercise (ownership check)
+
+**Advanced Features:**
+- [ ] GET /api/exercises?equipment_id=X - Filter by equipment
+- [ ] GET /api/exercises?is_public=true - Filter public exercises
+- [ ] POST /api/exercises/:id/equipment - Link equipment to exercise
+- [ ] DELETE /api/exercises/:id/equipment/:equipment_id - Unlink equipment
+
+**Testing:**
+- [ ] Create mock repository
+- [ ] Unit tests for service layer (visibility rules, ownership)
+- [ ] Unit tests for handlers
+- [ ] Add to Postman collection
+- [ ] Test with Newman
+
+**Validation:**
+- [ ] Input validation
+- [ ] Ownership validation
+- [ ] Public/private visibility rules
+
+## Epic 6: Workout Management (Clean Architecture)
+**Architecture Setup:**
+- [ ] Create models/workout.go and models/workout_exercise.go
+- [ ] Create repositories/workout.go (interface + implementation)
+- [ ] Create services/workout.go (with nested exercise logic)
+- [ ] Create handlers/workout.go
+- [ ] Add dependency injection in main.go
+
+**CRUD Endpoints:**
+- [ ] POST /api/workouts - Create workout with exercises
+- [ ] GET /api/workouts - List user's workouts
+- [ ] GET /api/workouts/:id - Get workout with exercises
+- [ ] PUT /api/workouts/:id - Update workout
+- [ ] DELETE /api/workouts/:id - Delete workout (cascade exercises)
+
+**Workout-Exercise Relationship:**
+- [ ] POST /api/workouts/:id/exercises - Add exercise to workout
+- [ ] PUT /api/workouts/:id/exercises/:exercise_id - Update sets/reps/order
+- [ ] DELETE /api/workouts/:id/exercises/:exercise_id - Remove exercise
+
+**Testing:**
+- [ ] Create mock repositories
+- [ ] Unit tests for service layer (nested operations)
+- [ ] Unit tests for handlers
+- [ ] Add to Postman collection
+- [ ] Test with Newman
+
+**Validation:**
+- [ ] Input validation (sets, reps, order)
+- [ ] Ownership validation
+- [ ] Exercise existence validation
+
+## Epic 7: Image Upload & Storage (Clean Architecture)
+**Architecture Setup:**
+- [ ] Create storage/interface.go (StorageService interface)
+- [ ] Create storage/supabase.go (real Supabase Storage implementation)
+- [ ] Create storage/mock.go (mock for unit tests)
+- [ ] Add USE_MOCK_STORAGE environment variable
+- [ ] Update services to use StorageService interface
+
+**Storage Configuration:**
 - [ ] Configure Supabase Storage buckets (exercises, workouts)
-- [ ] Implement POST /api/exercises/:id/image (upload exercise image)
-- [ ] Implement POST /api/workouts/:id/image (upload workout image)
-- [ ] Implement DELETE endpoints for images
-- [ ] Add image URL to exercise/workout responses
+- [ ] Set up bucket policies (public read, authenticated write)
 
-## Epic 8: API Documentation & Testing
-- [ ] Add input validation for all endpoints
-- [ ] Implement proper error handling
-- [ ] Add API documentation (comments/Swagger)
-- [ ] Create sample requests/responses
-- [ ] Write unit tests for core functionality
-- [ ] Write integration tests
+**Upload Endpoints:**
+- [ ] POST /api/exercises/:id/image - Upload exercise image
+- [ ] POST /api/workouts/:id/image - Upload workout image
+- [ ] DELETE /api/exercises/:id/image - Delete exercise image
+- [ ] DELETE /api/workouts/:id/image - Delete workout image
+
+**Testing:**
+- [ ] Unit tests with mock storage
+- [ ] Test file validation (size, type)
+- [ ] Add to Postman collection (multipart/form-data)
+
+**Validation:**
+- [ ] File type validation (jpg, png, webp)
+- [ ] File size limits
+- [ ] Ownership validation
+
+## Epic 8: Testing & Documentation
+**Unit Testing:**
+- [ ] Ensure all services have unit tests (using mocks)
+- [ ] Ensure all handlers have unit tests
+- [ ] Add table-driven tests for edge cases
+- [ ] Achieve >80% code coverage
+
+**Integration Testing:**
+- [ ] Set up test database (testcontainers or separate DB)
+- [ ] Write integration tests for critical flows
+- [ ] Test authentication flow end-to-end
+
+**API Documentation:**
+- [ ] Add godoc comments to all exported functions
+- [ ] Create OpenAPI/Swagger specification
+- [ ] Document error responses
+- [ ] Add usage examples
+
+**Postman/Newman:**
+- [ ] Complete Postman collection for all endpoints
+- [ ] Add test assertions in Postman
+- [ ] Create Newman CI/CD script
 
 ## Epic 9: Optimization & Polish
-- [ ] Add pagination for list endpoints
-- [ ] Implement search functionality for exercises
-- [ ] Add rate limiting
-- [ ] Optimize database queries
-- [ ] Add logging middleware
-- [ ] Performance testing
+**Performance:**
+- [ ] Add pagination to list endpoints (limit, offset)
+- [ ] Implement search for exercises (by name, description)
+- [ ] Add database indexes (already done in migrations)
+- [ ] Add query optimization (eager loading, N+1 prevention)
+
+**Observability:**
+- [ ] Add structured logging (zerolog or zap)
+- [ ] Add request ID middleware
+- [ ] Add response time logging
+
+**Security & Reliability:**
+- [ ] Add rate limiting middleware
+- [ ] Add request timeout middleware
+- [ ] Add CORS configuration
+- [ ] Add graceful shutdown
+- [ ] Add health check with DB connectivity
+
+**Developer Experience:**
+- [ ] Add Makefile with common commands
+- [ ] Add Docker Compose for local development
+- [ ] Update documentation with deployment guide
 
 ---
 
