@@ -70,7 +70,7 @@ Supabase provides three types of keys. Understanding them is crucial for securit
 
 **What it is:**
 ```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyZ3pvdW1id3Fva2hqYWtvbGd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NDE1NDMsImV4cCI6MjA3NTExNzU0M30.7kONuMC8oL1DNKPVs0_8gD0fcrsDVGmGKC9DjqGr2MQ
+your-anon-key-here
 ```
 
 **Purpose:**
